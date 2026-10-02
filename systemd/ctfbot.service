@@ -1,0 +1,12 @@
+[Unit]
+Description=CTFbot game engine
+After=network-online.target
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/ctfbot
+Environment=CTFBOT_DB=/var/lib/ctfbot/ctfbot.db
+ExecStart=/opt/ctfbot/ctfbot init
+User=ctfbot
+Group=ctfbot
+[Install]
+WantedBy=multi-user.target
