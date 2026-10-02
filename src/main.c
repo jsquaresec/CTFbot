@@ -1,0 +1,7 @@
+#include "ctfbot.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+static void usage(void){puts("ctfbot init | start USER [sha256|hex|caesar] | active USER | reset USER [kind] | submit USER ANSWER | profile USER | leaderboard");}
+static void show(ctf_challenge*c){printf("Challenge #%lld [%s] %d XP\n%s\n",c->id,c->kind,c->points,c->prompt);}
+int main(int ac,char**av){const char*db=getenv("CTFBOT_DB");if(!db)db="ctfbot.db";ctf_ctx c;if(ctf_open(&c,db)){fputs("database error\n",stderr);return 1;}int rc=0;if(ac<2){usage();rc=2;}else if(!strcmp(av[1],"init")){puts("CTFbot database ready.");}else if(!strcmp(av[1],"start")&&ac>=3){ctf_challenge x;if(ctf_start(&c,av[2],ac>3?av[3]:"sha256",&x))rc=1;else show(&x);}else if(!strcmp(av[1],"active")&&ac>=3){ctf_challenge x;if(ctf_active(&c,av[2],&x)){puts("No active challenge.");rc=3;}else show(&x);}else if(!strcmp(av[1],"reset")&&ac>=3){ctf_challenge x;if(ctf_reset(&c,av[2],ac>3?av[3]:"sha256",&x))rc=1;else show(&x);}else if(!strcmp(av[1],"submit")&&ac>=4){int p=0;int r=ctf_submit(&c,av[2],av[3],&p);if(r==0)printf("Correct! +%d XP\n",p);else if(r==1){puts("Incorrect.");rc=4;}else {puts("No active challenge.");rc=3;}}else if(!strcmp(av[1],"profile")&&ac>=3){int s=0,v=0;if(ctf_profile(&c,av[2],&s,&v)){puts("Player not found.");rc=3;}else printf("%s: %d XP, %d solves\n",av[2],s,v);}else if(!strcmp(av[1],"leaderboard")){char b[2048]={0};ctf_leaderboard(&c,b,sizeof b);printf("%s",*b?b:"No players yet.\n");}else{usage();rc=2;}ctf_close(&c);return rc;}
